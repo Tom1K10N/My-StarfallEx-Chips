@@ -1,0 +1,35 @@
+--@name Reptiloid's
+--@author Tom1K
+--@client
+
+O = owner()
+
+O:manipulateBonePosition(5, Vector(25.052, 100.481, -1.397))
+
+O:manipulateBonePosition(4, Vector(10))
+
+O:manipulateBonePosition(3, Vector(10))     
+
+O:manipulateBonePosition(2, Vector(10))
+
+O:manipulateBonePosition(8, Vector(10))
+
+O:manipulateBonePosition(9, Vector(10))
+
+O:manipulateBonePosition(10, Vector(10))
+
+O:manipulateBonePosition(13, Vector(12))
+
+O:manipulateBonePosition(16, Vector(10))
+
+O:manipulateBonePosition(19, Vector(12))
+
+O:manipulateBonePosition(20, Vector(10))
+
+O:manipulateBonePosition(21, Vector(10))
+
+O:manipulateBonePosition(22, Vector(20))
+
+O:manipulateBonePosition(23, Vector(20))
+
+-- Created by Tom1K :D  https://steamcommunity.com/profiles/76561199308779343/

@@ -1,0 +1,181 @@
+--@name Combine Soldier Model
+--@client
+
+O = owner()
+
+local Holo = holograms.create(O:getPos(), Angle(), "models/Combine_Soldier.mdl")
+local LastPos = owner():getPos()        
+
+-- define a table of sounds to choose from
+local steps = {
+    "npc/combine_soldier/gear1.wav",
+    "npc/combine_soldier/gear2.wav",    
+    "npc/combine_soldier/gear3.wav",
+    "npc/combine_soldier/gear4.wav",
+    "npc/combine_soldier/gear5.wav",
+    "npc/combine_soldier/gear6.wav",
+}
+
+-- define a variable to keep track of the time of the last sound played
+local lastSoundTime = 0
+local LastTalk = 60
+
+-- define the delay between each sound in seconds
+local soundDelay = 0.5
+local talkDelay = 60
+
+-- define a function to play a random sound from the table
+local function playRandomSound()
+    -- check if enough time has passed since the last sound was played
+    if timer.curtime() - lastSoundTime >= soundDelay then
+        -- randomly choose a sound from the table
+        local sound = table.random(steps)
+        -- check if a valid sound was chosen
+        if sound then
+            -- play the chosen sound
+            Holo:emitSound(sound)
+            -- update the time of the last sound played
+            lastSoundTime = timer.curtime()
+        else
+            -- print an error message if no valid sound was chosen
+            print("Error: No valid sound was chosen")
+        end
+    end
+end
+
+local voices = {
+    "npc/combine_soldier/vo/overwatchconfirmhvtcontained.wav",
+    "npc/combine_soldier/vo/overwatchreportspossiblehostiles.wav",
+    "npc/combine_soldier/vo/overwatchrequestreinforcement.wav",
+    "npc/combine_soldier/vo/overwatchrequestreserveactivation.wav",
+    "npc/combine_soldier/vo/overwatchrequestwinder.wav",
+    "npc/combine_soldier/vo/overwatchsectoroverrun.wav",
+    "npc/combine_soldier/vo/ovewatchorders3ccstimboost.wav",
+    "npc/combine_soldier/vo/overwatchteamisdown.wav",
+    "npc/combine_soldier/vo/overwatchrequestskyshield.wav",
+    "npc/combine_soldier/vo/prison_soldier_fallback_b4.wav",
+    "npc/combine_soldier/vo/prison_soldier_containd8.wav",
+    "npc/combine_soldier/vo/prison_soldier_activatecentral.wav",
+    "npc/combine_soldier/vo/prison_soldier_boomersinbound.wav",
+    "npc/combine_soldier/vo/prison_soldier_bunker1.wav",
+    "npc/combine_soldier/vo/prison_soldier_bunker2.wav",
+    "npc/combine_soldier/vo/prison_soldier_bunker3.wav",
+    "npc/combine_soldier/vo/prison_soldier_sundown3dead.wav",
+    "npc/combine_soldier/vo/prison_soldier_tohighpoints.wav",
+    "npc/combine_soldier/vo/prison_soldier_visceratorsa5.wav",  
+    "npc/combine_soldier/vo/prison_soldier_freeman_antlions.wav",
+    "npc/combine_soldier/vo/sectorisnotsecure.wav"
+}
+
+local function playRandomVoices()
+    -- check if enough time has passed since the last sound was played
+    if timer.curtime() - LastTalk >= talkDelay then
+        -- randomly choose a sound from the table
+        local voicetalk = table.random(voices)
+        -- check if a valid sound was chosen
+        if voicetalk then
+            -- play the chosen sound
+            Holo:emitSound(voicetalk)
+            -- update the time of the last sound played
+            LastTalk = timer.curtime()
+        else
+            -- print an error message if no valid sound was chosen
+            print("Error: No valid sound was chosen")
+            
+        end
+    end
+end
+
+timer.create("PlayVoices", talkDelay, 100, playRandomVoices)
+
+playRandomVoices()
+
+local Pains = {
+    "npc/combine_soldier/pain1.wav",
+    "npc/combine_soldier/pain2.wav",
+    "npc/combine_soldier/pain3.wav",
+}
+
+local function onOwnerHurt()
+    local sound = Pains[math.random(#Pains)]
+    Holo:emitSound(sound)
+end
+
+hook.add("PlayerHurt", "PlaySoundOnOwnerHurt", function(victim)
+    if victim == owner() then
+        onOwnerHurt()
+    end
+end)
+
+hook.add("Tick", "", function()
+    local speed = 90 -- adjust this value to control the speed of the hologram movement
+    local TargetPos = owner():getPos()
+    local CurrentPos = Holo:getPos()
+    local NewPos = CurrentPos + (TargetPos - CurrentPos) * speed * timer.frametime()
+    
+    Holo:setPos(NewPos)
+
+    local Moved = TargetPos:getDistanceSqr(LastPos) > 0.1
+    if Moved then
+        Holo:setAnimation("runall")
+        -- call the playRandomSound function to play a random sound
+        playRandomSound()
+    elseif owner():getActiveWeapon():isValid() then
+        local weapon = owner():getActiveWeapon():getClass()
+        local whitelist = {"weapon_pistol", "weapon_357", "weapon_crossbow", "weapon_crowbar", "weapon_physcannon", "weapon_ar2", "weapon_rpg", "weapon_shotgun", "weapon_smg1", "weapon_stunstick", "ptp_cs_elites", "ptp_cs_p228", "ptp_cs_glock", "ptp_cs_aug", "ptp_cs_famas", "ptp_cs_ak47", "ptp_cs_g3sg1", "ptp_cs_p90", "ptp_cs_fiveseven", "ptp_cs_galil", "ptp_cs_mac10", "ptp_cs_usp", "ptp_cs_mp5", "ptp_cs_ump45", "ptp_cs_knife", "ptp_cs_sg550", "ptp_cs_sg552", "ptp_cs_pumpshotgun", "ptp_cs_autoshotgun", "ptp_cs_para", "ptp_cs_awp", "ptp_cs_m4", "ptp_cs_deagle", "ptp_cs_tmp", "ptp_cs_scout"} -- Add the weapons you want to whitelist here
+        if table.hasValue(whitelist, weapon) then
+            Holo:setAnimation("combatidle1")
+        else
+            Holo:setAnimation("idle1")
+        end
+    end
+    
+hook.add("Think", "JumpAnimation", function()
+    if owner():keyDown(3) and not owner():keyDown(1) then
+        Holo:setAnimation("cs_jump")
+    end
+end)
+
+hook.add("Think", "crouchAnimation", function()
+    if owner():keyDown(4) and not owner():keyDown(8) then
+        Holo:setAnimation("crouchidle")
+    end
+end)
+
+hook.add("Think", "crouchMove", function()
+    local velocity = owner():getVelocity()
+    local speed = math.sqrt(velocity.x^2 + velocity.y^2 + velocity.z^2)
+    if speed > 0 and owner():keyDown(4) then
+        Holo:setAnimation("crouch_walkall")
+    end
+end)
+
+local lastZ = owner():getPos().z
+local fallThreshold = 2 -- adjust this value to control the minimum height the player must fall from to trigger the animation
+local jumpThreshold = 70 -- adjust this value to control the maximum height considered a jump
+hook.add("Think", "fallAnimation", function()
+    local currentZ = owner():getPos().z
+    local fallDistance = lastZ - currentZ
+    if fallDistance > fallThreshold and fallDistance < jumpThreshold then
+        Holo:setAnimation("rappelloop")
+    end
+    lastZ = currentZ
+end)
+
+    local Angles = owner():getEyeAngles()
+    Angles.p = 0
+    Angles.r = 0
+    Holo:setAngles(Angles)
+
+    LastPos = TargetPos
+end)
+
+Invis = owner()
+Invis:setNoDraw(true)
+Invis:setMaterial("Models/effects/vol_light001")
+
+hook.add("Think", "HidePMThink", function()
+    if owner():isValid() then
+        owner():setNoDraw(owner():isAlive())
+end   
+end)

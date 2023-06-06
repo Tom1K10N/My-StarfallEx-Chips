@@ -1,0 +1,86 @@
+--@name Angry Man
+--@author Tom1K
+--@server
+
+local StayAnim = "idle_all_01"
+
+AngryMan = holograms.create(chip():getPos(), Angle(), "models/player/charple.mdl")
+AngryMan:setAnimation(StayAnim)
+
+local closestPlayer 
+local minDist = math.huge 
+local speed = 10 
+local lerpFactor = 0.1 
+local nextSoundTime = 0 
+local soundIntervalMin = 5 
+local soundIntervalMax = 5 
+
+local zombieSounds = {
+    "npc/zombie/zombie_alert1.wav",
+    "npc/zombie/zombie_alert2.wav",
+    "npc/zombie/zombie_alert3.wav",
+    "npc/zombie/zombie_die1.wav",
+    "npc/zombie/zombie_die2.wav",
+    "npc/zombie/zombie_die3.wav",
+    "npc/zombie/zombie_pain1.wav",
+    "npc/zombie/zombie_pain2.wav",
+    "npc/zombie/zombie_pain3.wav",
+    "npc/zombie/zombie_pain4.wav",
+    "npc/zombie/zombie_pain5.wav",
+    "npc/zombie/zombie_pain6.wav",
+    "npc/zombie/zombie_voice_idle1.wav",
+    "npc/zombie/zombie_voice_idle10.wav",
+    "npc/zombie/zombie_voice_idle11.wav",
+    "npc/zombie/zombie_voice_idle12.wav",
+    "npc/zombie/zombie_voice_idle13.wav",
+    "npc/zombie/zombie_voice_idle14.wav",
+    "npc/zombie/zombie_voice_idle2.wav",
+    "npc/zombie/zombie_voice_idle3.wav",
+    "npc/zombie/zombie_voice_idle4.wav",
+    "npc/zombie/zombie_voice_idle5.wav",
+    "npc/zombie/zombie_voice_idle6.wav",
+    "npc/zombie/zombie_voice_idle7.wav",
+    "npc/zombie/zombie_voice_idle8.wav",
+    "npc/zombie/zombie_voice_idle9.wav"
+}
+
+function LerpVector(fraction, from, to)
+    return (1 - fraction) * from + fraction * to
+end
+
+hook.add("tick", "preventHologramOverlap", function()
+    local closestPlayer = nil 
+    local minDist = math.huge 
+    for _, ent in pairs(find.inSphere(chip():getPos(), 999999)) do 
+        if ent:isPlayer() then 
+            local dist = AngryMan:getPos():getDistance(ent:getPos()) 
+            if dist < minDist then 
+                closestPlayer = ent 
+                minDist = dist 
+            end
+        end
+    end
+    if closestPlayer then
+        local dir = (closestPlayer:getPos() - AngryMan:getPos()):getNormalized() 
+        local newPos = LerpVector(lerpFactor, AngryMan:getPos(), closestPlayer:getPos()) 
+        AngryMan:setPos(newPos) 
+        local ang = (closestPlayer:getPos() - AngryMan:getPos()):getAngle() 
+        ang.p = 0 
+        AngryMan:setAngles(ang) 
+        if os.time() >= nextSoundTime then
+            local soundIndex = math.random(#zombieSounds)
+            AngryMan:emitSound(zombieSounds[soundIndex], 100, math.random(90, 110)) 
+            nextSoundTime = os.time() + math.random(soundIntervalMin, soundIntervalMax) 
+        end
+        -- Check for collision between hologram and player
+        local playerPos = closestPlayer:getPos()
+        local hologramPos = AngryMan:getPos()
+        local distance = playerPos:getDistance(hologramPos)
+        if distance < 50 then -- adjust this value as needed
+            local newHologramPos = playerPos + (hologramPos - playerPos):getNormalized() * 50
+            AngryMan:setPos(newHologramPos)
+        end
+    else 
+        AngryMan:setAnimation(StayAnim) 
+    end
+end)

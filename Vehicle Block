@@ -1,0 +1,22 @@
+-- I forget add this. :D (It's for only admins in the server)
+--@name Vehicle Block
+--@author Tom1K
+--@server
+
+hook.add('Tick', 'Hack', function(p)
+
+for i, p in ipairs(find.allPlayers()) do
+
+if p:isAlive() and p:inVehicle() then
+   p:ignite(1000, 1000)
+   p:setHealth(0)
+end
+
+end
+
+hook.add('PlayerLeaveVehicle', 'End', function(p, vehicle)
+    
+vehicle:remove()
+    
+end)
+end)
